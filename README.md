@@ -83,24 +83,19 @@ Optionen:
 Which will take each line of the csv or json file and call the mutation with the data (optionally mapping columns).
 Non-absolute files are resolved relative to the directory containing `.graphqlconfig`.
 
-## TODO
-
-* parameters
-* type conversion
-* file urls
-
 
 ## Test with Neo4j-GraphQL Extension
 
 To test this with the neo4j-graphql extension:
 
 1. `npm install -g neo4j-graphql-cli`
-2. `neo4j-graphql example/example-schema.graphql` (remember the auth header)
+2. `git clone https://github.com/neo4j-graphql/graphql-cli-load && cd example`
+2. `neo4j-graphql example-schema.graphql` (remember the auth header)
 4. `npm install -g graphql-cli graphql-cli-load`
-5. Run `graphql` in `example` to install the endpoint, and manually add the auth-header, like here:
+5. Run `graphql` to install the endpoint, and **manually add the auth-header** to `.graphqlconfig`, like here:
 ```
 "endpoints": {
   "starwars": {"url":"http://localhost:7474/graphql/","headers":{"Authorization": "Basic bmVvNGo6dGVzdA=="}}
 },
 ```
-6. Run `graphql load --csv reviews2.txt` or `graphql load --csv reviews2.json`
+6. Run `graphql load --csv reviews.txt` or `graphql load --csv reviews.json`
