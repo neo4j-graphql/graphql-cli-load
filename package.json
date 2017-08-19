@@ -1,0 +1,56 @@
+{
+  "name": "graphql-cli-load",
+  "version": "0.1.1",
+  "description": "GraphQL CLI Data Loading plugin",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist/"
+  ],
+  "main": "dist/index.js",
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "tsc",
+    "test": "jest",
+    "lint": "tslint {src,test}/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neo4j-graphql/graphql-cli-load.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/neo4j-graphql/graphql-cli-load/issues"
+  },
+  "homepage": "https://github.com/neo4j-graphql/graphql-cli-load#readme",
+  "devDependencies": {
+    "@types/graphql": "^0.10.0",
+    "@types/jest": "^20.0.5",
+    "@types/node": "^8.0.17",
+    "@types/papaparse": "^4.1.30",
+    "jest": "^20.0.4",
+    "ts-jest": "^20.0.7",
+    "tslint": "^5.5.0",
+    "tslint-config-standard": "^6.0.1",
+    "typescript": "^2.2.0"
+  },
+  "dependencies": {
+    "glob": "^7.1.2",
+    "graphql": "^0.10.5",
+    "graphql-cli": "^1.0.0-beta.4",
+    "graphql-config": "^1.0.2",
+    "graphql-request": "^1.2.0",
+    "papaparse": "^4.1.30"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ]
+  }
+}

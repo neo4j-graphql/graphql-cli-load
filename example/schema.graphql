@@ -1,0 +1,129 @@
+# source: http://localhost:7474/graphql/
+# timestamp: Sat Aug 19 2017 00:25:01 GMT+0100 (BST)
+
+schema {
+  query: QueryType
+  mutation: MutationType
+}
+
+# Relationship
+directive @relation on FIELD
+
+# default value
+directive @defaultValue on FIELD
+
+# field is unique in type
+directive @isUnique on FIELD
+
+# Cypher query to run
+directive @cypher on FIELD
+
+# Enable query profiling
+directive @profile on QUERY
+
+# Enable query explanation
+directive @explain on QUERY
+
+# Specify Cypher version
+directive @version(
+  # Cypher Version (3.0, 3.1, 3.2)
+  version: String = "3.1"
+) on QUERY
+
+# Ordering Enum for Review
+enum _ReviewOrdering {
+  # Ascending sort for episode
+  episode_asc
+
+  # Descending sort for episode
+  episode_desc
+
+  # Ascending sort for stars
+  stars_asc
+
+  # Descending sort for stars
+  stars_desc
+
+  # Ascending sort for commentary
+  commentary_asc
+
+  # Descending sort for commentary
+  commentary_desc
+}
+
+# Enum for Episode
+enum Episode {
+  # Value for NEWHOPE
+  NEWHOPE
+
+  # Value for EMPIRE
+  EMPIRE
+
+  # Value for JEDI
+  JEDI
+}
+
+# Long type
+scalar Long
+
+type MutationType {
+  # Creates a Review entity
+  createReview(episode: Episode!, stars: Long!, commentary: String): String
+
+  # Updates a Review entity
+  updateReview(episode: Episode!, commentary: String): String
+
+  # Deletes a Review entity
+  deleteReview(episode: Episode!): String
+  createReview2(episode: Episode, stars: Int!, commentary: String): String
+}
+
+type QueryType {
+  Review(
+    # episode of Review
+    episode: Episode
+
+    # stars of Review
+    stars: Long
+
+    # commentary of Review
+    commentary: String
+
+    # episodes is list variant of episode of Review
+    episodes: [Episode]
+
+    # starss is list variant of stars of Review
+    starss: [Long]
+
+    # commentarys is list variant of commentary of Review
+    commentarys: [String]
+    orderBy: [_ReviewOrdering]
+    first: Int
+    offset: Int
+  ): [Review]
+  reviews(episode: Episode!): [Review]
+}
+
+# Review-Node
+type Review {
+  # internal node id
+  _id: ID
+
+  # episode of  Review
+  episode: Episode!
+
+  # stars of  Review
+  stars: Long!
+
+  # commentary of  Review
+  commentary: String
+}
+
+# Input Type ReviewInput
+input ReviewInput {
+  # Field stars of ReviewInput
+  stars: Int!
+
+  # Field commentary of ReviewInput
+  commentary: String
+}

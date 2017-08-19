@@ -1,0 +1,14 @@
+{
+  "schemaPath": "schema.graphql",
+  "extensions": {
+    "endpoints": {
+      "starwars": {"url":"http://localhost:7474/graphql/",
+                   "headers":{"Authorization": "Basic bmVvNGo6dGVzdA=="}}
+    },
+    "load": {
+      "json" : "reviews.json",
+      "mutation": "createReview",
+      "mapping": { "text" : "commentary", "rating" : "stars"}
+    }
+  }
+}
