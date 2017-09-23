@@ -1,4 +1,4 @@
-import {buildASTSchema,parse,GraphQLSchema,graphql} from 'graphql';
+import {buildASTSchema,parse,GraphQLSchema,graphql,getNamedType,GraphQLNonNull} from 'graphql';
 import { GraphQLClient, request } from 'graphql-request';
 
 import * as papa from 'papaparse';
@@ -7,7 +7,7 @@ import * as chalk from 'chalk';
 import * as path from 'path';
 import * as fs from 'fs';
 
-export const command = 'load [--json] [--csv] [--endpoint] [--mutation] [--mapping]';
+export const command = 'load [--json] [--csv] [--endpoint] [--mutation] [--mapping] [--delim]';
 export const desc = 'Loads data from sources using mutations using .graphqlconfig';
 export const builder = {
     mapping: {
@@ -29,6 +29,10 @@ export const builder = {
     csv: {
         alias: 'c',
         description: 'csv file to load'
+    },
+    delim: {
+        alias: 'd',
+        description: 'delimiter for arrays'
     }
 };
 
@@ -101,20 +105,55 @@ function getMutation(config, basePath, argv) {
   return mutationField;
 }
 
-function buildMutations(mutationField, args, data, mapping) {
-  return "mutation { \n" +
+function buildMutations(mutationField, args, data, mapping,delim) {
+  const rMapping = {};
+  const regexp = new RegExp(delim + "\s*");
+  Object.keys(mapping).forEach((k) => rMapping[mapping[k]]=k);
+  const mutations = 
   data.map((row,idx) => {
-    const params = Object.keys(row).map( (key) => { 
-      const arg = args[mapping[key]||key];
+    var fullfilled = true;
+    const params = Object.keys(args).map( (key) => { 
+      const arg = args[key];
+      const column=(rMapping[key]||key).toString();
       // todo params
-      const value = arg.type.toString().substring(0,6) == "String" ? '"'+ row[key].replace('"','\"') + '"' : row[key];
+      var value=row[column]; // sometimes this is not wanted, e.g. if there is a crossover naming // || row[key]
+      const type = arg.type.toString();
+      const namedType = getNamedType(arg.type).name;
+      const isList = type.indexOf("]") != -1;
+      const isNonNull = type.charAt(type.length -1 ) == '!';
+      if (value === null || value === undefined) {
+         if (isNonNull) fullfilled = false;
+         return null;
+      }
+      if (isList) {
+         if (!Array.isArray(value)) {
+            if (typeof(value)=='string') {
+               value = value.trim();
+               if (value.charAt(0)=='[') value = JSON.parse(value)
+               else if (value.indexOf(delim) > -1) value = value.split(regexp);
+            }
+         }
+      }
+      if (isList) {
+         value=JSON.stringify(value);
+      } else if (namedType == "String" || namedType == "ID" ) {
+         value=JSON.stringify(value.toString());
+      }
       return `${arg.name}: ${value}`;
-    }).join(",");
-    return `_${idx} : ${mutationField.name} ( ${params} )`;
-  }).join("\n") + 
-  "\n}";  
+    }).filter((v) => v !== null).join(",");
+    return fullfilled ? `_${idx} : ${mutationField.name} ( ${params} )` : null;
+  }).filter((v) => v !== null).join("\n");
+
+  return "mutation { \n" + mutations +"\n}";  
 }
 
+function parseJson(str) {
+   try {
+      return JSON.parse(str);
+   } catch(e) {
+      throw new Error(`Error parsing ${str} as JSON: ${e}`);
+   }
+}
 
 export const handler = async ({getConfig},argv) => {
   const {config, configPath} = getConfig();
@@ -132,11 +171,12 @@ export const handler = async ({getConfig},argv) => {
   mutationField.args.forEach((arg) => args[arg.name]=arg);
 
   const data = readFile(basePath, options, argv);
-  const mapping = JSON.parse(argv.mapping||"null") || options.mapping || {};
+  const mapping = parseJson(argv.mapping||"null") || options.mapping || {};
   if (Object.keys(mapping).length > 0) {
      console.log(chalk.yellow(`Using mapping: ${JSON.stringify(mapping)}`));
   }
-  const mutations = buildMutations(mutationField, args, data, mapping);
+  const delim = argv.delim || ';';
+  const mutations = buildMutations(mutationField, args, data, mapping, delim);
 
   console.log(chalk.yellow(`Sending query:\n${mutations.substring(0,200)}...`));
   const client = new GraphQLClient(endpoint.url, endpoint);
