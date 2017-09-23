@@ -69,18 +69,19 @@ _0 : createReview2 ( episode: NEWHOPE,commentary: "A legendarily expansive and a
 ## Options
 
 ```
-graphql load [--json=file.json] [--csv=file.csv] [--endpoint=name] [--mutation=createType] [--mapping='{"title":"name"}']
+/usr/local/bin/graphql load [--json] [--csv] [--endpoint] [--mutation] [--mapping] [--delim]
 
 Optionen:
-  --help          show help
+  --help          Hilfe anzeigen                                       [boolean]
   --mapping, -p   name mapping of input to mutation (json)
   --mutation, -m  mutation to call
   --endpoint, -e  endpoint name to use
   --json, -j      json file to load
   --csv, -c       csv file to load
+  --delim, -d     delimiter for arrays   
 ```
 
-Which will take each line of the csv or json file and call the mutation with the data (optionally mapping columns).
+Which will take each line of the _csv_ or _json_ file and call the _mutation_ on the _endpoint_ with the data (optionally _mapping_ columns).
 Non-absolute files are resolved relative to the directory containing `.graphqlconfig`.
 
 
