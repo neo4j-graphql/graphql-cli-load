@@ -1,4 +1,4 @@
-import {buildASTSchema,parse,GraphQLSchema,graphql,getNamedType,GraphQLNonNull} from 'graphql';
+import {buildASTSchema,parse,GraphQLSchema,GraphQLObjectType,graphql,getNamedType,GraphQLNonNull,GraphQLID} from 'graphql';
 import { GraphQLClient, request } from 'graphql-request';
 
 import * as papa from 'papaparse';
@@ -77,11 +77,14 @@ function getEndpoint(config, argv) {
   if (!key) {
     return console.log(chalk.red(`No endpoint found.`));
   }
-  const endpoint = endpoints[key];
+  var endpoint = endpoints[key];
   if (!endpoint) {
     return console.log(chalk.red(`No endpoint ${key} found.`));
   }
-  console.log(chalk.green(`Using endpoint ${key}: ${endpoint.url}`));
+  if (typeof(endpoint) === "string") {
+     endpoint = { url: endpoint};
+  }
+  console.log(chalk.green(`Using endpoint ${key}: ${JSON.stringify(endpoint)}`));
   return endpoint;
 }
 
@@ -103,6 +106,16 @@ function getMutation(config, basePath, argv) {
   }
   console.log(chalk.green(`Using mutation "${mutationField.name}": "${mutationField.description}".`));
   return mutationField;
+}
+
+function findReturnExpression(mutationField) {
+    const returnType = getNamedType(mutationField.type)
+    if (returnType instanceof GraphQLObjectType) {
+       const fields = (returnType as GraphQLObjectType).getFields();
+       const field = Object.keys(fields).find((x) => (getNamedType(fields[x].type) === GraphQLID)) || Object.keys(fields)[0]
+       return `{ ${field} }`
+    }
+    return "";
 }
 
 function buildMutations(mutationField, args, data, mapping,delim) {
@@ -141,7 +154,8 @@ function buildMutations(mutationField, args, data, mapping,delim) {
       }
       return `${arg.name}: ${value}`;
     }).filter((v) => v !== null).join(",");
-    return fullfilled ? `_${idx} : ${mutationField.name} ( ${params} )` : null;
+    const returnExpression = findReturnExpression(mutationField);
+    return fullfilled ? `_${idx} : ${mutationField.name} ( ${params} ) ${returnExpression}` : null;
   }).filter((v) => v !== null).join("\n");
 
   return "mutation { \n" + mutations +"\n}";  
