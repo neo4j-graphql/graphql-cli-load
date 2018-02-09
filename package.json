@@ -1,6 +1,6 @@
 {
   "name": "graphql-cli-load",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "GraphQL CLI Data Loading plugin",
   "files": [
     "LICENSE",

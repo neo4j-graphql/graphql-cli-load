@@ -36,8 +36,8 @@ export const builder = {
     }
 };
 
-function getSchema(config, basePath) {
-  const schemaPath = path.join(basePath, config.schemaPath);
+function getSchema(config) {
+  const schemaPath = config.schemaPath;
   const schemaContents = fs.readFileSync(schemaPath).toString();
   return buildASTSchema(parse(schemaContents));
 };
@@ -84,15 +84,15 @@ function getEndpoint(config, argv) {
   if (typeof(endpoint) === "string") {
      endpoint = { url: endpoint};
   }
-  console.log(chalk.green(`Using endpoint ${key}: ${JSON.stringify(endpoint)}`));
+  console.log(chalk.green(`Using endpoint ${key}: ${JSON.stringify(endpoint)	}`));
   return endpoint;
 }
 
-function getMutation(config, basePath, argv) {
+function getMutation(config, argv) {
   const extensions = config.extensions || {};
   const options = extensions.load || {};
 
-  const schema = getSchema(config, basePath);
+  const schema = getSchema(config);
 
   const mutationType = schema.getMutationType()
   if (!mutationType) {
@@ -169,22 +169,24 @@ function parseJson(str) {
    }
 }
 
-export const handler = async ({getConfig},argv) => {
-  const {config, configPath} = getConfig();
-  const basePath = path.dirname(configPath);
+exports.handler = async function (context, argv) {
+  const config = await context.getProjectConfig()
+  const schema = config.getSchemaSDL();
+  const configPath = config.configPath
+
   const extensions = config.extensions || {};
   const options = extensions.load || {};
 
   const endpoint = getEndpoint(config,argv);
   if (!endpoint) return;
 
-  const mutationField = getMutation(config,basePath, argv);
+  const mutationField = getMutation(config, argv);
   if (!mutationField) return;
 
   var args = {};
   mutationField.args.forEach((arg) => args[arg.name]=arg);
 
-  const data = readFile(basePath, options, argv);
+  const data = readFile(path.dirname(configPath), options, argv);
   const mapping = parseJson(argv.mapping||"null") || options.mapping || {};
   if (Object.keys(mapping).length > 0) {
      console.log(chalk.yellow(`Using mapping: ${JSON.stringify(mapping)}`));
