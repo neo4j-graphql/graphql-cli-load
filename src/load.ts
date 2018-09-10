@@ -126,9 +126,9 @@ function findReturnExpression(mutationField) {
 function buildMutations(mutationField, args, data, mapping,delim) {
 
 
-  const rMapping = {};
+  // const rMapping = {}; // unnecessary given direct mapping is used
   const regexp = new RegExp(delim + "\s*");
-  Object.keys(mapping).forEach((k) => rMapping[mapping[k]]=k);
+  // Object.keys(mapping).forEach((k) => rMapping[mapping[k]]=k); // unnecessary given direct mapping is used
 
   const mutations = 
   data.map((row,idx) => {
