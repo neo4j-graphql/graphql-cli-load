@@ -124,27 +124,27 @@ function findReturnExpression(mutationField) {
 }
 
 function buildMutations(mutationField, args, data, mapping,delim) {
-  // console.log("\n mutationField parameter at buildMutations is " + JSON.stringify(mutationField))
-  // console.log("\n args parameter at buildMutations is " + JSON.stringify( args))
+
+
   const rMapping = {};
   const regexp = new RegExp(delim + "\s*");
   Object.keys(mapping).forEach((k) => rMapping[mapping[k]]=k);
-  console.log("While mapping is " + JSON.stringify(mapping) + " , but rMapping is " + JSON.stringify(rMapping))
+
   const mutations = 
   data.map((row,idx) => {
-    console.log("\n row when it was declared is: " + JSON.stringify(row))
+
     var fullfilled = true;
     const params = Object.keys(args).map( (key) => { 
       const arg = args[key];
-      // console.log(chalk.white("At buildMutations, the arg inside data.map is " + JSON.stringify(arg)))
-      // console.log("arg.name inside data.map at getMutation is " + arg.name)
-     //  const column=(rMapping[key]||key).toString(); // original
-      console.log("Correcting the key mapping data with const column =  mapping[key].toString() is " + (mapping[key]).toString())
+
+
+      //  const column=(rMapping[key]||key).toString(); // original
+      //  console.log("Correcting the key mapping data with const column =  mapping[key].toString() is " + (mapping[key]).toString())
       const column = mapping[key].toString()
       console.log("\n At data.map in buildMutations key is: "+ key + " and rMapping is: "+ JSON.stringify(rMapping))
       // todo params
       console.log("When naming the values, we use row[column] where column is: " + column)
-      // console.log("Alternatively testing, we can also find out what row[key] is " + row["episode"])
+
       var value=row[column]; // sometimes this is not wanted, e.g. if there is a crossover naming // || row[key]
       const type = arg.type.toString();
       const namedType = getNamedType(arg.type).name;
@@ -152,7 +152,7 @@ function buildMutations(mutationField, args, data, mapping,delim) {
       const isNonNull = type.charAt(type.length -1 ) == '!';
       if (value === null || value === undefined) {
          if (isNonNull) fullfilled = false;
-         	console.log("At data.map in buildMutations if value === null || undefined, value is: " + value)
+
 		return null;
       }
       if (isList) {
@@ -169,14 +169,14 @@ function buildMutations(mutationField, args, data, mapping,delim) {
       } else if (namedType == "String" || namedType == "ID" ) {
          value=JSON.stringify(value.toString());
       }
-      console.log("return arg.name" + arg.name + " : value " + value + " in data.map at buildMutations")
+
       return `${arg.name}: ${value}`;
     }).filter((v) => v !== null).join(",");
     const returnExpression = findReturnExpression(mutationField);
-    console.log("\n returnExpression at data.map at buildMutations returns: " + returnExpression)
+
     return fullfilled ? `_${idx} : ${mutationField.name} ( ${params} ) ${returnExpression}` : null;
   }).filter((v) => v !== null).join("\n");
-  console.log("\n buildMutations returns: " + mutations)
+
   return "mutation { \n" + mutations +"\n}";  
 }
 
@@ -189,7 +189,7 @@ function parseJson(str) {
 }
 
 exports.handler = async function (context, argv) {
-  console.log("Graphql-load has been invoked")
+
   const config = await context.getProjectConfig()
   const schema = config.getSchemaSDL();
   const configPath = config.configPath
@@ -214,8 +214,8 @@ exports.handler = async function (context, argv) {
   }
   const delim = argv.delim || ';';
   const mutations = buildMutations(mutationField, args, data, mapping, delim);
-  console.log("mutations at mainWorkflow is " + mutations)
-  console.log("Let's see if the error is " + mutations.substring(0,200))
+
+
   console.log(chalk.yellow(`Sending query:\n${mutations.substring(0,200)}...`));
   const client = new GraphQLClient(endpoint.url, endpoint);
   const result = await client.request(mutations, {});
